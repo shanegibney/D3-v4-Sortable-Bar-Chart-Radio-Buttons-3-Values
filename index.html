@@ -106,25 +106,12 @@
       .attr('x', function(d, i) {
         return x(d.name);
       })
-      // .attr('y', function(d, i) {
-      //   return y1(d.val1);
-      // })
-      // .attr('height', function(d, i) {
-      //   return height - y1(d.val1)
-      // })
-      .attr('y', height)
-      .attr('height', 0)
       .attr('opacity', 0.85)
       .attr('width', 40)
       .attr("transform", "translate(" + 27 + ",0)")
       .style('fill', 'blue')
       .style('stroke', 'gray')
       .attr('class', 'bar')
-      .transition()
-      .duration(3000)
-      .delay(function(d, i) {
-        return i * 1500
-      })
       .attr('y', function(d, i) {
         return y1(d.val1);
       })
