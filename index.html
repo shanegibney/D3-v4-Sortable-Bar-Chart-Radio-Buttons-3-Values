@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+
+<body>
+  <div>
+    <form id="form">
+      <input type="radio" name="stack" value="val1">blue (val1)
+      <br>
+      <input type="radio" name="stack" value="val2">white (val2)
+      <br>
+      <input type="radio" name="stack" value="val3">green (val3)
+      <br>
+    </form>
+  </div>
+  <div id="bar_chart">
+  </div>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script>
+    var data = [{
+      "name": "A",
+      "val1": 11,
+      "val2": 6,
+      "val3": 1
+
+    }, {
+      "name": "B",
+      "val1": 8,
+      "val2": 7,
+      "val3": 3
+    }, {
+      "name": "C",
+      "val1": 9,
+      "val2": 5,
+      "val3": 4
+    }]
+
+    data.forEach(function(d) {
+      d.value = +d.value;
+    });
+
+    var margin = {
+        top: 50,
+        right: 50,
+        bottom: 100,
+        left: 80
+      },
+      width = 1500 - margin.left - margin.right,
+      height = 600 - margin.top - margin.bottom;
+
+    var x = d3.scaleBand()
+      .domain(data.map(function(d) {
+        return d.name
+      }))
+      .range([0, width / 4]);
+
+    var y1 = d3.scaleLinear()
+      .domain([0, d3.max(data, function(d) {
+        return d.val1
+      })])
+      .range([height, 0]);
+
+    var y2 = d3.scaleLinear()
+      .domain([0, d3.max(data, function(d) {
+        return d.val2
+      })])
+      .range([height, 0]);
+
+    var y3 = d3.scaleLinear()
+      .domain([0, d3.max(data, function(d) {
+        return d.val3
+      })])
+      .range([height, 0]);
+
+    var svg = d3.select("#bar_chart")
+      .data(data)
+      .append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    var xAxis = d3.axisBottom(x)
+    svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis);
+
+    // Add the Y Axis
+    svg.append("g")
+      .attr("class", "axis")
+      .call(d3.axisLeft(y1)
+        .ticks(7));
+
+    var tooltip = d3.select("#info")
+      .append("div")
+      .style("position", "absolute")
+      .style("z-index", "10")
+      .style("visibility", "hidden");
+
+    var rects = svg.selectAll('rect')
+      .data(data);
+
+    //********* Bar Chart 1 ****************
+    var newRects1 = rects.enter();
+
+    newRects1.append('rect')
+      .attr('x', function(d, i) {
+        return x(d.name);
+      })
+      // .attr('y', function(d, i) {
+      //   return y1(d.val1);
+      // })
+      // .attr('height', function(d, i) {
+      //   return height - y1(d.val1)
+      // })
+      .attr('y', height)
+      .attr('height', 0)
+      .attr('opacity', 0.85)
+      .attr('width', 40)
+      .attr("transform", "translate(" + 27 + ",0)")
+      .style('fill', 'blue')
+      .style('stroke', 'gray')
+      .attr('class', 'bar')
+      .transition()
+      .duration(3000)
+      .delay(function(d, i) {
+        return i * 1500
+      })
+      .attr('y', function(d, i) {
+        return y1(d.val1);
+      })
+      .attr('height', function(d, i) {
+        return height - y1(d.val1)
+      });
+
+    //********* Bar Chart 2 ****************
+    var newRects2 = rects.enter();
+
+    newRects2.append('rect')
+      .attr('x', function(d, i) {
+        return x(d.name);
+      })
+      .attr('y', function(d, i) {
+        return y1(d.val2);
+      })
+      .attr('height', function(d, i) {
+        return height - y1(d.val2)
+      })
+      .attr('opacity', 0.85)
+      .attr('width', 40)
+      .attr("transform", "translate(" + 37 + ",0)")
+      .style('fill', 'white')
+      .style('stroke', 'gray')
+      .attr('class', 'bar');
+
+    //********* Bar Chart 3 ****************
+    var newRects3 = rects.enter();
+
+    newRects3.append('rect')
+      .attr('x', function(d, i) {
+        return x(d.name);
+      })
+      .attr('y', function(d, i) {
+        return y1(d.val3);
+      })
+      .attr('height', function(d, i) {
+        return height - y1(d.val3)
+      })
+      .attr('width', 40)
+      .attr('opacity', 0.95)
+      .attr("transform", "translate(" + 47 + ",0)")
+      .style('fill', 'green')
+      .style('stroke', 'gray')
+      .attr('class', 'bar');
+
+    d3.selectAll("input[name='stack']").on("change", change);
+
+    function change() {
+
+      var x0 = x.domain(data.sort(this.value == "val1" ?
+          (function(a, b) {
+            return b.val1 - a.val1;
+          }) : ((this.value == "val2") ?
+            (function(a, b) {
+              return b.val2 - a.val2;
+            }) : (function(a, b) {
+              return b.val3 - a.val3;
+            }))).map(function(d) {
+          return d.name;
+        }))
+        .copy();
+
+      svg.selectAll(".bar")
+        .sort(function(a, b) {
+          console.log("transition name001")
+          return x0(a.name) - x0(b.name);
+        });
+
+      var transition = svg.transition().duration(750),
+        delay = function(d, i) {
+          console.log("transition name002")
+          return i * 50;
+        };
+
+      transition.selectAll(".bar")
+        .delay(delay)
+        .attr("x", function(d) {
+          console.log("transition name003")
+          return x0(d.name);
+        });
+
+      transition.select(".x.axis")
+        .call(xAxis)
+        .selectAll("g")
+        .delay(delay);
+    }
+  </script>
